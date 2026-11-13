@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  --color-ink: #000;
+  --color-accent: var(--accent);
+}
+
+:root {
+  --accent: #ff375f;
+  --accent-2: #ff7a45;
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --nav-h: 64px;
+  --mini-h: 66px;
+  color-scheme: dark;
+}
+
+html, body, #root { height: 100%; background: #000; }
+body {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+input, textarea { user-select: text; -webkit-user-select: text; font-size: 16px; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+::-webkit-scrollbar { display: none; }
+
+/* Glossy surfaces: translucent glass + top specular highlight + hairline border */
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.04));
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 .5px rgba(255,255,255,.1), 0 10px 30px rgba(0,0,0,.55);
+}
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.03));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), inset 0 0 0 .5px rgba(255,255,255,.07);
+  border-radius: 20px;
+}
+.accent-bg {
+  background: linear-gradient(160deg, var(--accent-2), var(--accent) 60%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 24px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.accent-text { color: var(--accent); }
+.press { transition: transform .15s cubic-bezier(.3,.7,.4,1), opacity .15s; }
+.press:active { transform: scale(.94); opacity: .8; }
+.row-press:active { background: rgba(255,255,255,.07); }
+
+.screen-pad { padding-top: calc(var(--sat) + 12px); padding-bottom: calc(var(--sab) + var(--nav-h) + var(--mini-h) + 28px); }
+
+.title-xl { font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.anim-sheet { animation: slide-up .38s cubic-bezier(.2,.9,.25,1); }
+.anim-fade { animation: fade-in .25s ease-out; }
+.anim-pop { animation: pop .3s cubic-bezier(.2,.9,.25,1); }
+
+/* Range slider */
+input[type=range].slider {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; touch-action: none;
+  --p: 0%;
+}
+input[type=range].slider::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 99px;
+  background: linear-gradient(90deg, #fff var(--p), rgba(255,255,255,.22) var(--p));
+}
+input[type=range].slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 0; height: 0; box-shadow: none;
+}
+input[type=range].slider.thumb::-webkit-slider-thumb {
+  width: 14px; height: 14px; border-radius: 50%; background: #fff; margin-top: -4px; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
