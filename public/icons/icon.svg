@@ -1,34 +1,28 @@
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14102b"/><stop offset=".55" stop-color="#07060f"/><stop offset="1" stop-color="#000"/></linearGradient>
-    <radialGradient id="a1" cx="18%" cy="12%" r="70%"><stop offset="0" stop-color="#7c3aed" stop-opacity=".75"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
-    <radialGradient id="a2" cx="92%" cy="95%" r="75%"><stop offset="0" stop-color="#06d6ff" stop-opacity=".6"/><stop offset="1" stop-color="#06d6ff" stop-opacity="0"/></radialGradient>
-    <radialGradient id="a3" cx="85%" cy="8%" r="45%"><stop offset="0" stop-color="#ff2d95" stop-opacity=".45"/><stop offset="1" stop-color="#ff2d95" stop-opacity="0"/></radialGradient>
-    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22e4ff"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ff2d95"/></linearGradient>
-    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".5" stop-color="#fff" stop-opacity=".04"/><stop offset="1" stop-color="#fff" stop-opacity=".25"/></linearGradient>
-    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="26"/></filter>
-    <filter id="sh" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".6"/></filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1b1e"/><stop offset=".45" stop-color="#0a0a0b"/><stop offset="1" stop-color="#000"/></linearGradient>
+    <radialGradient id="glow" cx="50%" cy="108%" r="75%"><stop offset="0" stop-color="#e5102f" stop-opacity=".55"/><stop offset=".6" stop-color="#8a0a1d" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <linearGradient id="red" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ff5a6b"/><stop offset=".45" stop-color="#e5102f"/><stop offset="1" stop-color="#7d0719"/></linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".4" stop-color="#fff" stop-opacity=".03"/><stop offset="1" stop-color="#e5102f" stop-opacity=".35"/></linearGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="30"/></filter>
+    <filter id="sh" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#000" flood-opacity=".7"/></filter>
     <clipPath id="tile"><rect width="512" height="512" rx="116"/></clipPath>
-    <clipPath id="tri"><path d="M190 140 L386 256 L190 372 Z" stroke-linejoin="round"/></clipPath>
   </defs>
   <rect width="512" height="512" fill="#000"/>
   <g transform="translate(0 0) scale(1)">
     <g clip-path="url(#tile)">
       <rect width="512" height="512" fill="url(#bg)"/>
-      <rect width="512" height="512" fill="url(#a1)"/><rect width="512" height="512" fill="url(#a2)"/><rect width="512" height="512" fill="url(#a3)"/>
-      <!-- sound arcs -->
-      <path d="M392 206a70 70 0 0 1 0 100" fill="none" stroke="url(#play)" stroke-width="10" stroke-linecap="round" opacity="0.9" transform="translate(0 0)"/><path d="M422 194a104 104 0 0 1 0 124" fill="none" stroke="url(#play)" stroke-width="8" stroke-linecap="round" opacity="0.62" transform="translate(-8 0)"/><path d="M452 182a138 138 0 0 1 0 148" fill="none" stroke="url(#play)" stroke-width="6" stroke-linecap="round" opacity="0.33999999999999997" transform="translate(-16 0)"/>
-      <!-- glowing rounded play triangle -->
-      <path d="M188 142 Q172 132 172 152 V360 Q172 380 188 370 L368 266 Q384 256 368 246 Z" fill="url(#play)" filter="url(#soft)" opacity=".8"/>
+      <rect width="512" height="512" fill="url(#glow)"/>
+      <path d="M200 150 Q180 138 180 162 V350 Q180 374 200 362 L372 266 Q392 256 372 246 Z" fill="#e5102f" filter="url(#soft)" opacity=".55"/>
       <g filter="url(#sh)">
-        <path d="M188 142 Q172 132 172 152 V360 Q172 380 188 370 L368 266 Q384 256 368 246 Z" fill="url(#play)" stroke-linejoin="round"/>
-        <path d="M188 142 Q172 132 172 152 V250 Q260 230 368 246 Z" fill="url(#gloss)" opacity=".55"/>
+        <path d="M200 150 Q180 138 180 162 V350 Q180 374 200 362 L372 266 Q392 256 372 246 Z" fill="url(#red)"/>
+        <path d="M200 150 Q180 138 180 162 V246 Q280 232 372 246 Z" fill="url(#gloss)" opacity=".5"/>
       </g>
-      <path d="M0 0H512V224C380 262 130 262 0 214Z" fill="url(#sheen)"/>
-      <rect x="2" y="2" width="508" height="508" rx="114" fill="none" stroke="url(#rim)" stroke-width="4"/>
+      <path d="M0 0H512V220C380 256 130 256 0 212Z" fill="url(#sheen)"/>
+      <rect x="2" y="2" width="508" height="508" rx="114" fill="none" stroke="url(#rim)" stroke-width="3"/>
     </g>
   </g>
 </svg>
