@@ -16,17 +16,33 @@ function SeekBar() {
   const dur = usePlayer((s) => s.duration)
   const seek = usePlayer((s) => s.seek)
   const [drag, setDrag] = useState<number | null>(null)
+  const dragRef = useRef<number | null>(null)
+  const lastSeek = useRef(0)
   const val = drag ?? pos
-  const commit = () => { if (drag != null) { seek(drag); setDrag(null) } }
   const max = dur || 1
+
+  // Seek while dragging (throttled) and again on release, so it works even when iOS drops pointerup/touchend.
+  const onInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = Number(e.target.value)
+    dragRef.current = v
+    setDrag(v)
+    const now = Date.now()
+    if (now - lastSeek.current > 120) { lastSeek.current = now; seek(v) }
+  }
+  const commit = () => {
+    if (dragRef.current == null) return
+    seek(dragRef.current)
+    dragRef.current = null
+    setDrag(null)
+  }
   return (
-    <div>
+    <div data-noswipe>
       <input
         type="range" min={0} max={max} step={0.1} value={Math.min(val, max)} aria-label="Seek"
         className="slider thumb"
         style={{ ['--p' as string]: `${(Math.min(val, max) / max) * 100}%` }}
-        onChange={(e) => setDrag(Number(e.target.value))}
-        onPointerUp={commit} onTouchEnd={commit} onMouseUp={commit} onKeyUp={commit}
+        onChange={onInput}
+        onPointerUp={commit} onPointerCancel={commit} onTouchEnd={commit} onMouseUp={commit} onKeyUp={commit} onBlur={commit}
       />
       <div className="-mt-1 flex justify-between text-[12px] font-medium tabular-nums text-white/50">
         <span>{fmtTime(val)}</span><span>-{fmtTime(Math.max(0, dur - val))}</span>
@@ -49,7 +65,11 @@ export function NowPlaying() {
   if (!open || !song) return null
   const hue = hueOf(song.album)
 
-  const onTouchStart = (e: React.TouchEvent) => { start.current = e.touches[0].clientY }
+  const onTouchStart = (e: React.TouchEvent) => {
+    // Sliding the seek bar must never drag the whole sheet.
+    if ((e.target as HTMLElement).closest('[data-noswipe]')) return
+    start.current = e.touches[0].clientY
+  }
   const onTouchMove = (e: React.TouchEvent) => {
     if (start.current == null) return
     setDy(Math.max(0, e.touches[0].clientY - start.current))
