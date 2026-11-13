@@ -32,7 +32,7 @@ export default function App() {
 
   return (
     <>
-      <main key={top ? 'd' : tab} className="anim-fade fixed inset-0 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <main key={top ? 'd' : tab} className="anim-page fixed inset-0 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         {screen}
       </main>
       <MiniPlayer />

@@ -13,7 +13,9 @@ export function PlayButton({ size = 72 }: { size?: number }) {
       className="press grid place-items-center rounded-full bg-white text-black"
       style={{ width: size, height: size, boxShadow: 'inset 0 -6px 12px rgba(0,0,0,.12), inset 0 2px 0 #fff, 0 10px 30px rgba(255,255,255,.18)' }}
     >
-      {loading && !playing ? <Loader2 className="animate-[spin_1s_linear_infinite]" size={size * 0.42} /> : <Icon size={size * 0.42} fill="currentColor" strokeWidth={0} className={playing ? '' : 'translate-x-[2px]'} />}
+      <span key={loading && !playing ? 'l' : playing ? 'p' : 'q'} className="anim-icon">
+        {loading && !playing ? <Loader2 className="animate-[spin_1s_linear_infinite]" size={size * 0.42} /> : <Icon size={size * 0.42} fill="currentColor" strokeWidth={0} className={playing ? '' : 'translate-x-[2px]'} />}
+      </span>
     </button>
   )
 }

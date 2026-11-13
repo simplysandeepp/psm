@@ -26,7 +26,7 @@ export function BottomNav() {
           const on = tab === id
           return (
             <button key={id} onClick={() => go(id)} className={`press flex w-16 flex-col items-center gap-1 ${on ? 'accent-text' : 'text-white/45'}`}>
-              <Icon size={24} strokeWidth={on ? 2.4 : 1.9} />
+              <span key={String(on)} className={on ? 'anim-bounce' : ''}><Icon size={24} strokeWidth={on ? 2.4 : 1.9} /></span>
               <span className="text-[10.5px] font-semibold">{label}</span>
             </button>
           )

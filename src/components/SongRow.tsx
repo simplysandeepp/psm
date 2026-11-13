@@ -54,7 +54,7 @@ export function SongRow({ song, queue, index, showArt = true, extra }: Props) {
         <div className={`truncate text-[16px] font-semibold ${active ? 'accent-text' : ''}`}>{song.title}</div>
         <div className="truncate text-[13px] text-white/50">{song.artist}{showArt ? ` · ${song.album}` : ''}</div>
       </div>
-      {song.favorite === 1 && <Heart size={14} className="accent-text" fill="currentColor" />}
+      {song.favorite === 1 && <Heart size={14} className="accent-text anim-heart" fill="currentColor" />}
       <span className="text-[13px] tabular-nums text-white/40">{fmtTime(song.duration)}</span>
       <button aria-label="More" className="press p-2 text-white/50" onClick={(e) => { e.stopPropagation(); songSheet(song, extra) }}>
         <MoreHorizontal size={20} />

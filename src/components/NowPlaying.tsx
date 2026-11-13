@@ -103,7 +103,7 @@ export function NowPlaying() {
           </div>
           <button onClick={() => openPlaylistPicker([song.id!])} aria-label="Add to playlist" className="press glass grid h-10 w-10 place-items-center rounded-full"><ListPlus size={19} /></button>
           <button onClick={() => toggleFavorite(song)} aria-label="Favorite" className={`press glass grid h-10 w-10 place-items-center rounded-full ${song.favorite ? 'accent-text' : ''}`}>
-            <Heart size={19} fill={song.favorite ? 'currentColor' : 'none'} />
+            <span key={song.favorite} className={song.favorite ? 'anim-heart' : ''}><Heart size={19} fill={song.favorite ? 'currentColor' : 'none'} /></span>
           </button>
         </div>
 
