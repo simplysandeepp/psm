@@ -43,8 +43,23 @@ audio.volume = 0.5
 const canSetVolume = audio.volume === 0.5
 audio.volume = 1
 
-/** Direct handle for UI that must read the live playback clock (seek bar). */
+/**
+ * Position restored from the last session that is NOT yet loaded into the audio element.
+ * The element has no source until the user presses play, so this is the single source of truth
+ * for the clock until then; it guarantees the bar and the sound start from the same second.
+ */
+let pendingStart: number | null = null
+
+/** The one playback clock the UI should show: the saved spot before play, the real element after. */
+export const clock = () => pendingStart ?? audio.currentTime
 export const getAudio = () => audio
+
+const once = (ev: string, ms: number) =>
+  new Promise<void>((res) => {
+    const done = () => { clearTimeout(t); audio.removeEventListener(ev, done); res() }
+    const t = setTimeout(done, ms)
+    audio.addEventListener(ev, done, { once: true })
+  })
 
 let loadToken = 0
 let objectUrl: string | null = null
@@ -82,6 +97,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
       if (order.length) void load(order[get().index] ?? order[0], { autoplay: true })
       return
     }
+    if (pendingStart != null) { void load(currentId, { autoplay: true, startAt: pendingStart }); return }
     if (audio.paused) { void audio.play().catch(onPlayBlocked) }
     else { audio.pause() }
   },
@@ -102,7 +118,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
 
   prev: () => {
     const { index, order, repeat } = get()
-    if (audio.currentTime > 3 || !order.length) { audio.currentTime = 0; return }
+    if (clock() > 3 || !order.length) { get().seek(0); return }
     if (index > 0) return void goTo(index - 1)
     if (repeat === 'all') return void goTo(order.length - 1)
     audio.currentTime = 0
@@ -112,6 +128,7 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     if (!Number.isFinite(t)) return
     const d = audio.duration
     const target = Math.max(0, Number.isFinite(d) && d > 0 ? Math.min(t, d - 0.05) : t)
+    if (pendingStart != null) { pendingStart = Math.max(0, t); set({ position: pendingStart }); persist(); return }
     const apply = () => { try { audio.currentTime = target } catch { /* not seekable yet */ } }
     // Before metadata is ready iOS silently ignores currentTime writes.
     if (audio.readyState >= 1) apply()
@@ -203,12 +220,22 @@ async function load(id: number, opts: { autoplay: boolean; startAt?: number }) {
   }
   if (objectUrl) URL.revokeObjectURL(objectUrl)
   objectUrl = URL.createObjectURL(file.blob)
+  pendingStart = opts.startAt && opts.startAt > 0 ? opts.startAt : null
   audio.src = objectUrl
-  if (opts.startAt) {
-    audio.addEventListener('loadedmetadata', () => { audio.currentTime = opts.startAt! }, { once: true })
-  }
+  audio.load()
   usePlayer.setState({ duration: song.duration })
   void setMediaSession(song)
+  if (pendingStart != null) {
+    // iOS ignores currentTime until metadata is ready; wait, seek, wait for the seek to land, only then play.
+    if (audio.readyState < 1) await once('loadedmetadata', 4000)
+    if (token !== loadToken) return
+    const seeked = once('seeked', 2500)
+    try { audio.currentTime = pendingStart } catch { /* fall through: starts from 0 and the bar follows */ }
+    await seeked
+    if (token !== loadToken) return
+    pendingStart = null
+    usePlayer.setState({ position: audio.currentTime })
+  }
   if (opts.autoplay) {
     try { await audio.play() } catch (e) { onPlayBlocked(e) }
     if (token === loadToken) {
@@ -256,7 +283,7 @@ audio.addEventListener('error', () => {
 // Interruptions (calls, Siri, other apps): iOS pauses the element itself. When we come back to the
 // foreground, re-sync UI to the real element state instead of trusting stale React state.
 document.addEventListener('visibilitychange', () => {
-  usePlayer.setState({ playing: !audio.paused, position: audio.currentTime })
+  usePlayer.setState({ playing: !audio.paused, position: clock() })
   updateWake()
 })
 
@@ -282,7 +309,7 @@ if ('mediaSession' in navigator) {
   const ms = navigator.mediaSession
   const p = () => usePlayer.getState()
   const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
-    ['play', () => { void audio.play().catch(onPlayBlocked) }],
+    ['play', () => { if (audio.paused) usePlayer.getState().toggle() }],
     ['pause', () => { audio.pause() }],
     ['previoustrack', () => p().prev()],
     ['nexttrack', () => p().next()],
@@ -317,7 +344,7 @@ function persist() {
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify({
         queue: s.queue, order: s.order, index: s.index, currentId: s.currentId,
-        position: audio.currentTime || s.position, shuffle: s.shuffle, repeat: s.repeat, volume: s.volume,
+        position: clock() || s.position, shuffle: s.shuffle, repeat: s.repeat, volume: s.volume,
       }))
     } catch { /* storage unavailable */ }
   }, 300)
@@ -337,5 +364,9 @@ export async function restoreSession() {
     repeat: s.repeat ?? 'off', volume: s.volume ?? 1,
   })
   if (canSetVolume) audio.volume = s.volume ?? 1
-  await load(s.currentId, { autoplay: false, startAt: s.position || 0 })
+  // Show the saved spot but load nothing yet: audio and bar then both start there on the first play.
+  const song = alive.find((x) => x?.id === s.currentId)!
+  pendingStart = s.position > 0 ? s.position : null
+  usePlayer.setState({ currentId: s.currentId, position: s.position || 0, duration: song.duration, playing: false })
+  void setMediaSession(song)
 }

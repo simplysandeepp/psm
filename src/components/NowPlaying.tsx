@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronDown, Heart, ListMusic, MoreHorizontal, X, ListPlus } from 'lucide-react'
 import { db, toggleFavorite } from '../lib/db'
-import { getAudio, usePlayer } from '../lib/player'
+import { clock, getAudio, usePlayer } from '../lib/player'
 import { useNav, usePrefs } from '../lib/store'
 import { useArt } from '../lib/art'
 import { fmtTime, hueOf } from '../lib/format'
@@ -29,7 +29,7 @@ function SeekBar() {
   useEffect(() => {
     let raf = 0
     const tick = () => {
-      if (!dragging.current) setT(getAudio().currentTime || 0)
+      if (!dragging.current) setT(clock() || 0)
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
