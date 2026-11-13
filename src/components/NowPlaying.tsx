@@ -91,7 +91,7 @@ export function NowPlaying() {
         </div>
 
         <div className="flex flex-1 items-center justify-center">
-          <div className="transition-transform duration-500 ease-out" style={{ transform: `scale(${playing ? 1 : 0.84})`, filter: 'drop-shadow(0 30px 40px rgba(0,0,0,.65))' }}>
+          <div className="transition-transform duration-500 ease-out" style={{ transform: `scale(${playing ? 1 : 0.84})` }}>
             <Cover song={song} size="min(78vw, 42vh)" radius={26} />
           </div>
         </div>
@@ -129,7 +129,7 @@ function QueueSheet() {
   const songs = useLiveQuery(() => db.songs.bulkGet(order), [order])
   if (!open) return null
   return (
-    <div className="absolute inset-0 z-10 flex flex-col anim-sheet" style={{ background: 'rgba(0,0,0,.88)', WebkitBackdropFilter: 'blur(30px)', backdropFilter: 'blur(30px)', paddingTop: 'calc(var(--sat) + 10px)' }}>
+    <div className="absolute inset-0 z-10 flex flex-col anim-sheet" style={{ background: 'rgba(0,0,0,.96)', paddingTop: 'calc(var(--sat) + 10px)' }}>
       <div className="flex items-center justify-between px-5 py-3">
         <div className="text-[22px] font-extrabold">Up Next</div>
         <div className="flex items-center gap-2">

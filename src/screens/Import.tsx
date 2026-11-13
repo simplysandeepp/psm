@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { AlertTriangle, CheckCircle2, FileAudio, FolderOpen, HardDrive, Info, ShieldCheck } from 'lucide-react'
-import { db } from '../lib/db'
-import { importFiles, requestPersist, storageInfo, type ImportProgress } from '../lib/importer'
+import { AlertTriangle, CheckCircle2, FileAudio, Folder, FolderOpen, HardDrive, Info, RefreshCw, ShieldCheck, Trash2, Unlink } from 'lucide-react'
+import { db, deleteSongs } from '../lib/db'
+import { folderNameOf, importFiles, requestPersist, storageInfo, syncFolder, type ImportProgress } from '../lib/importer'
 import { fmtBytes } from '../lib/format'
-import { useUI } from '../lib/store'
+import { usePrefs, useUI } from '../lib/store'
 import { Header } from '../components/ui'
+
+export function timeAgo(t: number) {
+  const m = Math.round((Date.now() - t) / 60000)
+  return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} hr ago` : `${Math.round(m / 1440)} d ago`
+}
 
 export function useStorage() {
   const [info, setInfo] = useState<Awaited<ReturnType<typeof storageInfo>> | null>(null)
@@ -40,15 +45,36 @@ export function Import() {
   const [prog, setProg] = useState<ImportProgress | null>(null)
   const [busy, setBusy] = useState(false)
   const say = useUI((s) => s.say)
+  const folder = usePrefs((s) => s.folder)
+  const setPrefs = usePrefs((s) => s.set)
+  const count = useLiveQuery(() => (folder ? db.songs.where('folder').equals(folder.name).count() : 0), [folder?.name])
 
-  const run = async (fl: FileList | null) => {
+  const runFiles = async (fl: FileList | null) => {
     if (!fl?.length || busy) return
     setBusy(true)
     await requestPersist()
-    const files = Array.from(fl)
-    const final = await importFiles(files, setProg)
+    const final = await importFiles(Array.from(fl), setProg)
     setBusy(false)
-    say(`Imported ${final.added}${final.duplicates ? ` · ${final.duplicates} duplicates` : ''}${final.failed.length ? ` · ${final.failed.length} failed` : ''}`)
+    say(`Imported ${final.added}${final.duplicates ? ` · ${final.duplicates} already here` : ''}${final.failed.length ? ` · ${final.failed.length} failed` : ''}`)
+  }
+
+  const runFolder = async (fl: FileList | null) => {
+    if (!fl?.length || busy) return
+    const files = Array.from(fl)
+    const name = folderNameOf(files) || 'Music'
+    setBusy(true)
+    await requestPersist()
+    const { result, missing } = await syncFolder(files, name, setProg)
+    setPrefs({ folder: { name, lastSync: Date.now() } })
+    setBusy(false)
+    say(result.added ? `${result.added} new song${result.added > 1 ? 's' : ''} from ${name}` : `${name} is up to date`)
+    if (missing.length) {
+      useUI.getState().openSheet({
+        title: `${missing.length} song${missing.length > 1 ? 's' : ''} no longer in “${name}”`,
+        subtitle: 'Remove them from the app too?',
+        actions: [{ label: 'Remove from App', danger: true, icon: <Trash2 size={20} />, run: async () => { await deleteSongs(missing.map((m) => m.id!)); say('Library matches folder') } }],
+      })
+    }
   }
 
   const pct = prog && prog.total ? (prog.done / prog.total) * 100 : 0
@@ -57,29 +83,50 @@ export function Import() {
     <div className="screen-pad">
       <Header title="Import" sub="Copy music onto this iPhone" />
 
-      <div className="mx-5 mb-4 grid gap-3">
-        <button disabled={busy} onClick={() => filesRef.current?.click()} className="accent-bg press flex items-center gap-4 rounded-[24px] p-5 text-left disabled:opacity-60">
-          <FileAudio size={30} />
-          <div><div className="text-[18px] font-extrabold">Choose Audio Files</div><div className="text-[13px] text-white/80">Pick many at once from the Files app</div></div>
-        </button>
-        <button disabled={busy} onClick={() => folderRef.current?.click()} className="glass press flex items-center gap-4 rounded-[24px] p-5 text-left disabled:opacity-60">
-          <FolderOpen size={30} />
-          <div><div className="text-[18px] font-extrabold">Choose a Folder</div><div className="text-[13px] text-white/60">Imports every song inside it</div></div>
+      <div className="mx-5 mb-4">
+        {folder ? (
+          <div className="card overflow-hidden p-5">
+            <div className="flex items-center gap-4">
+              <div className="accent-bg grid h-14 w-14 shrink-0 place-items-center rounded-[18px]"><Folder size={28} /></div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-bold uppercase tracking-wider text-white/40">Music folder</div>
+                <div className="truncate text-[21px] font-extrabold leading-tight">{folder.name}</div>
+                <div className="text-[13px] text-white/50">{count ?? 0} songs · synced {timeAgo(folder.lastSync)}</div>
+              </div>
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button disabled={busy} onClick={() => folderRef.current?.click()} className="accent-bg press flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-[16px] font-bold disabled:opacity-60">
+                <RefreshCw size={18} className={busy ? 'animate-spin' : ''} />{busy ? 'Syncing…' : 'Sync Now'}
+              </button>
+              <button disabled={busy} onClick={() => folderRef.current?.click()} className="glass press rounded-2xl px-5 py-3.5 text-[15px] font-bold disabled:opacity-60">Change</button>
+              <button disabled={busy} onClick={() => setPrefs({ folder: null })} aria-label="Unlink folder" className="glass press grid w-12 place-items-center rounded-2xl text-white/60"><Unlink size={18} /></button>
+            </div>
+            <p className="mt-3 text-[12px] leading-snug text-white/40">iOS lets Safari read a folder only while you pick it, so tap Sync Now and choose “{folder.name}” again. Only new songs are copied.</p>
+          </div>
+        ) : (
+          <button disabled={busy} onClick={() => folderRef.current?.click()} className="accent-bg press flex w-full items-center gap-4 rounded-[24px] p-5 text-left disabled:opacity-60">
+            <FolderOpen size={32} className="shrink-0" />
+            <div><div className="text-[18px] font-extrabold">Choose Music Folder</div><div className="text-[13px] text-white/80">Pick your Music folder once. Everything inside is imported.</div></div>
+          </button>
+        )}
+        <button disabled={busy} onClick={() => filesRef.current?.click()} className="glass press mt-3 flex w-full items-center gap-3 rounded-[20px] px-5 py-4 text-left disabled:opacity-60">
+          <FileAudio size={22} className="shrink-0 text-white/70" />
+          <div className="text-[15px] font-bold">Add individual files</div>
         </button>
       </div>
-      <input ref={filesRef} type="file" multiple accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" hidden onChange={(e) => { run(e.target.files); e.target.value = '' }} />
-      <input ref={folderRef} type="file" multiple hidden {...({ webkitdirectory: '', directory: '' } as object)} onChange={(e) => { run(e.target.files); e.target.value = '' }} />
+      <input ref={filesRef} type="file" multiple accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" hidden onChange={(e) => { runFiles(e.target.files); e.target.value = '' }} />
+      <input ref={folderRef} type="file" multiple hidden {...({ webkitdirectory: '', directory: '' } as object)} onChange={(e) => { runFolder(e.target.files); e.target.value = '' }} />
 
       {prog && (
         <div className="card mx-5 mb-4 p-4 anim-pop">
           <div className="mb-2 flex justify-between text-[14px] font-bold">
-            <span>{busy ? 'Importing…' : 'Import finished'}</span><span className="tabular-nums text-white/55">{prog.done}/{prog.total}</span>
+            <span>{busy ? 'Importing…' : 'Finished'}</span><span className="tabular-nums text-white/55">{prog.done}/{prog.total}</span>
           </div>
           <div className="h-2.5 overflow-hidden rounded-full bg-white/10"><div className="accent-bg h-full rounded-full transition-all" style={{ width: `${pct}%`, boxShadow: 'none' }} /></div>
           {busy && <div className="mt-2 truncate text-[12.5px] text-white/45">{prog.current}</div>}
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
             <span className="flex items-center gap-1 text-[#30d158]"><CheckCircle2 size={14} />{prog.added} added</span>
-            {prog.duplicates > 0 && <span className="text-white/55">{prog.duplicates} duplicates skipped</span>}
+            {prog.duplicates > 0 && <span className="text-white/55">{prog.duplicates} already in library</span>}
             {prog.failed.length > 0 && <span className="flex items-center gap-1 text-[#ff9f0a]"><AlertTriangle size={14} />{prog.failed.length} failed</span>}
           </div>
           {prog.failed.length > 0 && !busy && (

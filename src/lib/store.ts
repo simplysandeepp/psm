@@ -15,13 +15,14 @@ interface Prefs {
   ambient: boolean
   wakeLock: boolean
   sort: 'title' | 'artist' | 'album' | 'added' | 'duration'
+  folder: { name: string; lastSync: number } | null
   set: (p: Partial<Omit<Prefs, 'set'>>) => void
 }
 
 export const usePrefs = create<Prefs>()(
   persist(
     (set) => ({
-      accent: 'rose', ambient: true, wakeLock: false, sort: 'title',
+      accent: 'rose', ambient: true, wakeLock: false, sort: 'title', folder: null,
       set: (p) => set(p),
     }),
     { name: 'psm-prefs' },

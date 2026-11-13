@@ -74,6 +74,7 @@ function probeDuration(file: File): Promise<number> {
 export async function importFiles(
   list: File[],
   onProgress: (p: ImportProgress) => void,
+  folder?: string,
 ): Promise<ImportProgress> {
   const files = list.filter((f) => AUDIO_EXT.test(f.name) || f.type.startsWith('audio/'))
   const p: ImportProgress = { total: files.length, done: 0, added: 0, duplicates: 0, failed: [], current: '' }
@@ -83,28 +84,33 @@ export async function importFiles(
   p.done = skipped
   onProgress({ ...p })
 
-  const known = new Set((await db.songs.orderBy('hash').keys()) as string[])
+  const known = new Map<string, number>()
+  await db.songs.each((s) => { known.set(s.hash, s.id!) })
 
   for (const file of files) {
     p.current = file.name
     onProgress({ ...p })
     const hash = hashOf(file)
     try {
-      if (known.has(hash)) { p.duplicates++; continue }
+      if (known.has(hash)) {
+        p.duplicates++
+        if (folder) await db.songs.update(known.get(hash)!, { folder })
+        continue
+      }
       const meta = await readMeta(file)
       const song: Song = {
         title: meta.title, artist: meta.artist, album: meta.album, duration: meta.duration,
         size: file.size, mime: guessMime(file), fileName: file.name, hash,
         addedAt: Date.now(), lastPlayed: 0, playCount: 0, favorite: 0, hasArt: meta.art ? 1 : 0,
-        track: meta.track, year: meta.year,
+        track: meta.track, year: meta.year, folder,
       }
       await db.transaction('rw', db.songs, db.files, db.art, async () => {
         const id = await db.songs.add(song)
+        known.set(hash, id)
         // Re-wrap so IndexedDB stores a standalone copy, not a reference to the picker's temp file.
         await db.files.put({ songId: id, blob: file.slice(0, file.size, song.mime) })
         if (meta.art) await db.art.put({ songId: id, blob: meta.art })
       })
-      known.add(hash)
       p.added++
     } catch (e) {
       const reason = e instanceof DOMException && e.name === 'QuotaExceededError'
@@ -131,4 +137,22 @@ export async function storageInfo() {
 
 export async function requestPersist() {
   try { return (await navigator.storage?.persist?.()) ?? false } catch { return false }
+}
+
+/** Name of the top-level folder the user picked (webkitRelativePath is "Folder/sub/file.mp3"). */
+export function folderNameOf(files: File[]) {
+  const rel = (files[0] as File & { webkitRelativePath?: string })?.webkitRelativePath
+  return rel ? rel.split('/')[0] : ''
+}
+
+/**
+ * Mirror-style sync: import what is new, and report songs that were synced from this folder earlier
+ * but are no longer inside it so the UI can offer to remove them.
+ */
+export async function syncFolder(files: File[], name: string, onProgress: (p: ImportProgress) => void) {
+  const audio = files.filter((f) => AUDIO_EXT.test(f.name) || f.type.startsWith('audio/'))
+  const present = new Set(audio.map(hashOf))
+  const result = await importFiles(audio, onProgress, name)
+  const missing = (await db.songs.where('hash').noneOf([...present]).toArray()).filter((s) => s.folder === name)
+  return { result, missing }
 }

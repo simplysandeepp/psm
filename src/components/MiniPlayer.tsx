@@ -20,7 +20,7 @@ export function MiniPlayer() {
       <div
         onClick={() => open(true)}
         className="glass relative flex items-center gap-3 overflow-hidden rounded-[22px] p-2 pr-3"
-        style={{ height: 'var(--mini-h)', background: 'linear-gradient(180deg, rgba(60,60,64,.7), rgba(28,28,30,.78))' }}
+        style={{ height: 'var(--mini-h)', background: 'linear-gradient(180deg, rgba(62,62,66,.96), rgba(28,28,30,.98))' }}
       >
         <Cover song={song} size={50} radius={14} />
         <div className="min-w-0 flex-1">

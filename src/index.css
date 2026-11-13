@@ -16,6 +16,7 @@
   color-scheme: dark;
 }
 
+@layer base {
 html, body, #root { height: 100%; background: #000; }
 body {
   margin: 0;
@@ -31,13 +32,16 @@ body {
 input, textarea { user-select: text; -webkit-user-select: text; font-size: 16px; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 ::-webkit-scrollbar { display: none; }
+button { -webkit-appearance: none; appearance: none; touch-action: manipulation; }
+}
+
+@layer components {
 
 /* Glossy surfaces: translucent glass + top specular highlight + hairline border */
 .glass {
   background: linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.04));
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  backdrop-filter: blur(28px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 .5px rgba(255,255,255,.1), 0 10px 30px rgba(0,0,0,.55);
+  /* No backdrop-filter here on purpose: stacked blurs + transforms flicker on iOS WebKit. */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 .5px rgba(255,255,255,.1), 0 6px 18px rgba(0,0,0,.5);
 }
 .card {
   background: linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.03));
@@ -65,6 +69,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .anim-fade { animation: fade-in .25s ease-out; }
 .anim-pop { animation: pop .3s cubic-bezier(.2,.9,.25,1); }
 
+}
+
 /* Range slider */
 input[type=range].slider {
   -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; touch-action: none;
@@ -80,3 +86,7 @@ input[type=range].slider::-webkit-slider-thumb {
 input[type=range].slider.thumb::-webkit-slider-thumb {
   width: 14px; height: 14px; border-radius: 50%; background: #fff; margin-top: -4px; box-shadow: 0 2px 8px rgba(0,0,0,.5);
 }
+
+/* Keep fixed layers on their own compositor layer so scrolling beneath never repaints them. */
+nav, .anim-pop, .anim-sheet { -webkit-transform: translateZ(0); transform: translateZ(0); backface-visibility: hidden; }
+.anim-sheet { will-change: transform; }

@@ -35,7 +35,7 @@ export function PlaylistPicker() {
     <div className="fixed inset-0 z-[85]">
       <div className="absolute inset-0 bg-black/60 anim-fade" onClick={close} />
       <div className="absolute inset-x-0 bottom-0 anim-sheet px-3" style={{ paddingBottom: 'calc(var(--sab) + 10px)' }}>
-        <div className="glass max-h-[70vh] overflow-y-auto rounded-[28px] p-4" style={{ background: 'rgba(28,28,30,.9)' }}>
+        <div className="glass max-h-[70vh] overflow-y-auto rounded-[28px] p-4" style={{ background: 'rgba(28,28,30,.98)' }}>
           <div className="mb-3 text-center text-[17px] font-bold">Add to Playlist</div>
           <div className="mb-3 flex gap-2">
             <input

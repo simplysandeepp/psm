@@ -22,7 +22,7 @@ function Actions({ ids }: { ids: number[] }) {
 function Hero({ song, round }: { song?: Song; round?: boolean }) {
   return (
     <div className="mb-4 flex justify-center">
-      <div style={{ filter: 'drop-shadow(0 20px 30px rgba(0,0,0,.6))' }}>
+      <div>
         <Cover song={song} size={210} radius={round ? 105 : 26} />
       </div>
     </div>

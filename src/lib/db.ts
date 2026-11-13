@@ -19,6 +19,8 @@ export interface Song {
   hasArt: 0 | 1
   track?: number
   year?: number
+  /** name of the linked music folder this song was synced from */
+  folder?: string
 }
 
 /** Audio bytes live in their own table so listing songs never touches the blobs. */
@@ -39,6 +41,9 @@ class PsmDB extends Dexie {
       files: 'songId',
       art: 'songId',
       playlists: '++id, name, createdAt',
+    })
+    this.version(2).stores({
+      songs: '++id, hash, title, artist, album, addedAt, lastPlayed, favorite, folder',
     })
   }
 }

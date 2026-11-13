@@ -18,7 +18,7 @@ export function ActionSheet() {
     <div className="fixed inset-0 z-[80]">
       <div className="absolute inset-0 bg-black/60 anim-fade" onClick={close} />
       <div className="absolute inset-x-0 bottom-0 px-3 anim-sheet" style={{ paddingBottom: 'calc(var(--sab) + 10px)' }}>
-        <div className="glass overflow-hidden rounded-[28px]" style={{ background: 'rgba(28,28,30,.82)' }}>
+        <div className="glass overflow-hidden rounded-[28px]" style={{ background: 'rgba(28,28,30,.97)' }}>
           {(sheet.title || sheet.subtitle) && (
             <div className="border-b border-white/10 px-5 py-4 text-center">
               {sheet.title && <div className="truncate text-[15px] font-bold">{sheet.title}</div>}
@@ -36,7 +36,7 @@ export function ActionSheet() {
             </button>
           ))}
         </div>
-        <button onClick={close} className="glass press mt-2 w-full rounded-[22px] py-4 text-[17px] font-bold" style={{ background: 'rgba(44,44,46,.9)' }}>
+        <button onClick={close} className="glass press mt-2 w-full rounded-[22px] py-4 text-[17px] font-bold" style={{ background: 'rgba(44,44,46,.98)' }}>
           Cancel
         </button>
       </div>

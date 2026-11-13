@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { Disc3, Heart, Mic2, Music, Shuffle, Download, Play } from 'lucide-react'
+import { Disc3, Folder, Heart, Mic2, Music, RefreshCw, Shuffle, Download, Play } from 'lucide-react'
 import { usePlayer } from '../lib/player'
-import { useNav } from '../lib/store'
+import { useNav, usePrefs } from '../lib/store'
 import { Cover } from '../components/Cover'
 import { Empty, PrimaryButton, Section, useSongs } from '../components/ui'
 import { fmtLong } from '../lib/format'
@@ -15,6 +15,7 @@ export function Home() {
   const songs = useSongs()
   const play = usePlayer((s) => s.playQueue)
   const go = useNav((s) => s.go)
+  const folder = usePrefs((s) => s.folder)
 
   const { recent, added, all, favs, albums, artists, total } = useMemo(() => {
     const l = songs ?? []
@@ -55,6 +56,14 @@ export function Home() {
             <button onClick={() => play(all, undefined, true)} className="accent-bg press flex flex-1 items-center justify-center gap-2 rounded-[20px] py-4 text-[16px] font-bold"><Shuffle size={19} />Shuffle All</button>
             <button onClick={() => play(all, all[0], false)} className="glass press flex flex-1 items-center justify-center gap-2 rounded-[20px] py-4 text-[16px] font-bold"><Play size={19} fill="currentColor" />Play</button>
           </div>
+
+          {folder && (
+            <button onClick={() => go('import')} className="card press mx-5 mb-5 flex w-[calc(100%-2.5rem)] items-center gap-3 p-3.5 text-left">
+              <div className="accent-bg grid h-11 w-11 shrink-0 place-items-center rounded-[14px]"><Folder size={21} /></div>
+              <div className="min-w-0 flex-1"><div className="truncate text-[15px] font-bold">{folder.name}</div><div className="text-[13px] text-white/45">Tap to sync new songs</div></div>
+              <RefreshCw size={18} className="shrink-0 accent-text" />
+            </button>
+          )}
 
           <div className="mb-8 grid grid-cols-2 gap-3 px-5">
             {tiles.map(({ label, n, Icon, lib }) => (
