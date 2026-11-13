@@ -65,7 +65,8 @@ function SeekBar() {
       >
         <div className="relative h-[6px] w-full rounded-full bg-white/25 transition-[height] duration-150" style={{ height: drag ? 10 : 6 }}>
           <div className="absolute inset-y-0 left-0 rounded-full bg-white" style={{ width: `${pct}%` }} />
-          <div className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,.5)] transition-transform" style={{ left: `${pct}%`, transform: `translate(-50%, -50%) scale(${drag ? 1.35 : 1})` }} />
+          {/* Tailwind v4 translate-* uses the separate `translate` property, which stacked with this transform and pushed the knob off-centre; position it with one transform only. */}
+          <div className="absolute top-1/2 rounded-full bg-white" style={{ left: `${pct}%`, width: 20, height: 20, marginLeft: -10, marginTop: -10, transform: `scale(${drag ? 1.3 : 1})`, transition: 'transform .18s cubic-bezier(.3,1.5,.5,1)', boxShadow: '0 2px 10px rgba(0,0,0,.55), inset 0 -2px 3px rgba(0,0,0,.12)' }} />
         </div>
       </div>
       <div className="-mt-1 flex justify-between text-[12px] font-medium tabular-nums text-white/50">
