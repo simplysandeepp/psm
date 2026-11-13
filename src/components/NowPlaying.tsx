@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronDown, Heart, ListMusic, MoreHorizontal, X, ListPlus } from 'lucide-react'
 import { db, toggleFavorite } from '../lib/db'
-import { usePlayer } from '../lib/player'
+import { getAudio, usePlayer } from '../lib/player'
 import { useNav, usePrefs } from '../lib/store'
 import { useArt } from '../lib/art'
 import { fmtTime, hueOf } from '../lib/format'
@@ -11,41 +11,65 @@ import { TransportRow } from './Controls'
 import { songSheet } from './SongRow'
 import { openPlaylistPicker } from './PlaylistPicker'
 
+/** Custom pointer-driven slider: iOS native range inputs drop events inside transformed sheets. */
 function SeekBar() {
-  const pos = usePlayer((s) => s.position)
   const dur = usePlayer((s) => s.duration)
   const seek = usePlayer((s) => s.seek)
-  const [drag, setDrag] = useState<number | null>(null)
-  const dragRef = useRef<number | null>(null)
-  const lastSeek = useRef(0)
-  const val = drag ?? pos
-  const max = dur || 1
+  const trackRef = useRef<HTMLDivElement>(null)
+  const dragging = useRef(false)
+  const [t, setT] = useState(0)
+  const [drag, setDrag] = useState(false)
 
-  // Seek while dragging (throttled) and again on release, so it works even when iOS drops pointerup/touchend.
-  const onInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = Number(e.target.value)
-    dragRef.current = v
-    setDrag(v)
-    const now = Date.now()
-    if (now - lastSeek.current > 120) { lastSeek.current = now; seek(v) }
+  const total = () => {
+    const d = getAudio().duration
+    return Number.isFinite(d) && d > 0 ? d : dur || 0
   }
-  const commit = () => {
-    if (dragRef.current == null) return
-    seek(dragRef.current)
-    dragRef.current = null
-    setDrag(null)
+
+  // Follow the real audio clock every frame so the bar always matches what is playing.
+  useEffect(() => {
+    let raf = 0
+    const tick = () => {
+      if (!dragging.current) setT(getAudio().currentTime || 0)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  const timeAt = (clientX: number) => {
+    const r = trackRef.current!.getBoundingClientRect()
+    return Math.min(1, Math.max(0, (clientX - r.left) / r.width)) * total()
   }
+  const down = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragging.current = true
+    setDrag(true)
+    setT(timeAt(e.clientX))
+  }
+  const move = (e: React.PointerEvent) => { if (dragging.current) setT(timeAt(e.clientX)) }
+  const up = (e: React.PointerEvent) => {
+    if (!dragging.current) return
+    dragging.current = false
+    setDrag(false)
+    seek(timeAt(e.clientX))
+  }
+
+  const max = total() || 1
+  const pct = Math.min(100, (t / max) * 100)
   return (
     <div data-noswipe>
-      <input
-        type="range" min={0} max={max} step={0.1} value={Math.min(val, max)} aria-label="Seek"
-        className="slider thumb"
-        style={{ ['--p' as string]: `${(Math.min(val, max) / max) * 100}%` }}
-        onChange={onInput}
-        onPointerUp={commit} onPointerCancel={commit} onTouchEnd={commit} onMouseUp={commit} onKeyUp={commit} onBlur={commit}
-      />
+      <div
+        ref={trackRef} role="slider" aria-label="Seek" aria-valuemin={0} aria-valuemax={Math.round(max)} aria-valuenow={Math.round(t)}
+        className="relative flex h-9 items-center" style={{ touchAction: 'none' }}
+        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
+      >
+        <div className="relative h-[6px] w-full rounded-full bg-white/25 transition-[height] duration-150" style={{ height: drag ? 10 : 6 }}>
+          <div className="absolute inset-y-0 left-0 rounded-full bg-white" style={{ width: `${pct}%` }} />
+          <div className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,.5)] transition-transform" style={{ left: `${pct}%`, transform: `translate(-50%, -50%) scale(${drag ? 1.35 : 1})` }} />
+        </div>
+      </div>
       <div className="-mt-1 flex justify-between text-[12px] font-medium tabular-nums text-white/50">
-        <span>{fmtTime(val)}</span><span>-{fmtTime(Math.max(0, dur - val))}</span>
+        <span>{fmtTime(t)}</span><span>-{fmtTime(Math.max(0, max - t))}</span>
       </div>
     </div>
   )

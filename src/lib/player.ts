@@ -43,6 +43,9 @@ audio.volume = 0.5
 const canSetVolume = audio.volume === 0.5
 audio.volume = 1
 
+/** Direct handle for UI that must read the live playback clock (seek bar). */
+export const getAudio = () => audio
+
 let loadToken = 0
 let objectUrl: string | null = null
 
@@ -107,8 +110,13 @@ export const usePlayer = create<PlayerState>((set, get) => ({
 
   seek: (t) => {
     if (!Number.isFinite(t)) return
-    audio.currentTime = Math.max(0, Math.min(t, audio.duration || t))
-    set({ position: audio.currentTime })
+    const d = audio.duration
+    const target = Math.max(0, Number.isFinite(d) && d > 0 ? Math.min(t, d - 0.05) : t)
+    const apply = () => { try { audio.currentTime = target } catch { /* not seekable yet */ } }
+    // Before metadata is ready iOS silently ignores currentTime writes.
+    if (audio.readyState >= 1) apply()
+    else audio.addEventListener('loadedmetadata', apply, { once: true })
+    set({ position: target })
     pushPosition()
   },
 
