@@ -17,8 +17,10 @@ export default function App() {
   const tab = useNav((s) => s.tab)
   const stack = useNav((s) => s.stack)
   const accent = usePrefs((s) => s.accent)
+  const mini = usePrefs((s) => s.miniPlayer)
 
   useEffect(() => { void restoreSession() }, [])
+  useEffect(() => { document.documentElement.style.setProperty('--mini-h', mini ? '66px' : '0px') }, [mini])
   useEffect(() => {
     const [a, b] = ACCENTS[accent]
     document.documentElement.style.setProperty('--accent', a)

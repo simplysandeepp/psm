@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { db, type Song } from './db'
 import { getArtUrl } from './art'
-import { usePrefs, useUI } from './store'
+import { useNav, usePrefs, useUI } from './store'
 
 export type Repeat = 'off' | 'all' | 'one'
 
@@ -71,6 +71,8 @@ export const usePlayer = create<PlayerState>((set, get) => ({
     const order = sh ? [first, ...shuffled(ids.filter((i) => i !== first))] : ids.slice()
     set({ queue: ids.slice(), order, index: order.indexOf(first), shuffle: sh })
     void load(first, { autoplay: true })
+    // Without the mini-player bar, starting a song opens the full player directly.
+    if (!usePrefs.getState().miniPlayer) useNav.getState().setNowPlaying(true)
   },
 
   toggle: () => {
