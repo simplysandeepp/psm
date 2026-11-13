@@ -39,6 +39,13 @@ export function StorageCard() {
   )
 }
 
+/** Copy the FileList BEFORE resetting the input: Safari empties the live list on reset. */
+function pick(e: React.ChangeEvent<HTMLInputElement>, run: (f: File[]) => void) {
+  const files = Array.from(e.target.files ?? [])
+  e.target.value = ''
+  run(files)
+}
+
 export function Import() {
   const filesRef = useRef<HTMLInputElement>(null)
   const folderRef = useRef<HTMLInputElement>(null)
@@ -49,18 +56,17 @@ export function Import() {
   const setPrefs = usePrefs((s) => s.set)
   const count = useLiveQuery(() => (folder ? db.songs.where('folder').equals(folder.name).count() : 0), [folder?.name])
 
-  const runFiles = async (fl: FileList | null) => {
-    if (!fl?.length || busy) return
+  const runFiles = async (files: File[]) => {
+    if (!files.length || busy) return
     setBusy(true)
     await requestPersist()
-    const final = await importFiles(Array.from(fl), setProg)
+    const final = await importFiles(files, setProg)
     setBusy(false)
     say(`Imported ${final.added}${final.duplicates ? ` · ${final.duplicates} already here` : ''}${final.failed.length ? ` · ${final.failed.length} failed` : ''}`)
   }
 
-  const runFolder = async (fl: FileList | null) => {
-    if (!fl?.length || busy) return
-    const files = Array.from(fl)
+  const runFolder = async (files: File[]) => {
+    if (!files.length || busy) return
     const name = folderNameOf(files) || 'Music'
     setBusy(true)
     await requestPersist()
@@ -114,8 +120,8 @@ export function Import() {
           <div className="text-[15px] font-bold">Add individual files</div>
         </button>
       </div>
-      <input ref={filesRef} type="file" multiple accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" hidden onChange={(e) => { runFiles(e.target.files); e.target.value = '' }} />
-      <input ref={folderRef} type="file" multiple hidden {...({ webkitdirectory: '', directory: '' } as object)} onChange={(e) => { runFolder(e.target.files); e.target.value = '' }} />
+      <input ref={filesRef} type="file" multiple accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus" hidden onChange={(e) => pick(e, runFiles)} />
+      <input ref={folderRef} type="file" multiple hidden {...({ webkitdirectory: '', directory: '' } as object)} onChange={(e) => pick(e, runFolder)} />
 
       {prog && (
         <div className="card mx-5 mb-4 p-4 anim-pop">
