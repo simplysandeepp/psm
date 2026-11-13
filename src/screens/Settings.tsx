@@ -59,7 +59,6 @@ export function Settings() {
 
       <div className="card mx-5 mb-5">
         <div className="px-4 pt-3.5 text-[13px] font-bold uppercase tracking-wider text-white/40">Playback</div>
-        <Row title="Mini player bar" sub="Off: tapping a song opens the full player"><Toggle on={p.miniPlayer} set={(miniPlayer) => p.set({ miniPlayer })} /></Row>
         <Row title="Keep screen awake" sub="While playing with the app open"><Toggle on={p.wakeLock} set={(wakeLock) => p.set({ wakeLock })} /></Row>
       </div>
 

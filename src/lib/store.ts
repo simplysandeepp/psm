@@ -14,7 +14,6 @@ interface Prefs {
   accent: Accent
   ambient: boolean
   wakeLock: boolean
-  miniPlayer: boolean
   sort: 'title' | 'artist' | 'album' | 'added' | 'duration'
   folder: { name: string; lastSync: number } | null
   set: (p: Partial<Omit<Prefs, 'set'>>) => void
@@ -23,7 +22,7 @@ interface Prefs {
 export const usePrefs = create<Prefs>()(
   persist(
     (set) => ({
-      accent: 'rose', ambient: true, wakeLock: false, miniPlayer: false, sort: 'title', folder: null,
+      accent: 'rose', ambient: true, wakeLock: false, sort: 'title', folder: null,
       set: (p) => set(p),
     }),
     { name: 'psm-prefs' },

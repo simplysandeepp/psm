@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronDown, Heart, ListMusic, MoreHorizontal, Volume1, Volume2, X, ListPlus } from 'lucide-react'
+import { ChevronDown, Heart, ListMusic, MoreHorizontal, X, ListPlus } from 'lucide-react'
 import { db, toggleFavorite } from '../lib/db'
 import { usePlayer } from '../lib/player'
 import { useNav, usePrefs } from '../lib/store'
@@ -31,22 +31,6 @@ function SeekBar() {
       <div className="-mt-1 flex justify-between text-[12px] font-medium tabular-nums text-white/50">
         <span>{fmtTime(val)}</span><span>-{fmtTime(Math.max(0, dur - val))}</span>
       </div>
-    </div>
-  )
-}
-
-function VolumeBar() {
-  const volume = usePlayer((s) => s.volume)
-  const setVolume = usePlayer((s) => s.setVolume)
-  const canSetVolume = usePlayer((s) => s.canSetVolume)
-  // iOS locks element volume to hardware buttons; showing a dead slider would be misleading.
-  if (!canSetVolume) return <div className="h-4" />
-  return (
-    <div className="flex items-center gap-3 text-white/60">
-      <Volume1 size={18} />
-      <input type="range" min={0} max={1} step={0.01} value={volume} className="slider" aria-label="Volume"
-        style={{ ['--p' as string]: `${volume * 100}%`, height: 24 }} onChange={(e) => setVolume(Number(e.target.value))} />
-      <Volume2 size={18} />
     </div>
   )
 }
@@ -111,7 +95,6 @@ export function NowPlaying() {
 
         <SeekBar />
         <div className="my-3"><TransportRow /></div>
-        <VolumeBar />
 
         <div className="mt-3 flex justify-center">
           <button onClick={() => setQ(true)} className="press glass flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold">

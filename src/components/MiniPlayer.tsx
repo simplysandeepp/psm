@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../lib/db'
 import { usePlayer } from '../lib/player'
-import { useNav, usePrefs } from '../lib/store'
+import { useNav } from '../lib/store'
 import { Cover } from './Cover'
 import { PlayButton } from './Controls'
 import { SkipForward } from 'lucide-react'
@@ -13,8 +13,7 @@ export function MiniPlayer() {
   const dur = usePlayer((s) => s.duration)
   const song = useLiveQuery(() => (id != null ? db.songs.get(id) : undefined), [id])
   const open = useNav((s) => s.setNowPlaying)
-  const enabled = usePrefs((s) => s.miniPlayer)
-  if (!song || !enabled) return null
+  if (!song) return null
   const pct = dur > 0 ? Math.min(100, (pos / dur) * 100) : 0
   return (
     <div className="fixed inset-x-0 z-30 px-2.5 anim-pop" style={{ bottom: 'calc(var(--sab) + var(--nav-h) + 8px)' }}>

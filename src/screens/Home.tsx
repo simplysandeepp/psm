@@ -12,14 +12,11 @@ function greeting() {
 }
 
 export function Home() {
+  const standalone = matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
   const songs = useSongs()
   const play = usePlayer((s) => s.playQueue)
   const go = useNav((s) => s.go)
   const folder = usePrefs((s) => s.folder)
-  const miniOn = usePrefs((s) => s.miniPlayer)
-  const curId = usePlayer((s) => s.currentId)
-  const playing = usePlayer((s) => s.playing)
-  const openNP = useNav((s) => s.setNowPlaying)
 
   const { recent, added, all, favs, albums, artists, total } = useMemo(() => {
     const l = songs ?? []
@@ -49,6 +46,12 @@ export function Home() {
         {songs && songs.length > 0 && <p className="mt-1 text-[14px] text-white/45">{songs.length} songs · {fmtLong(total)} · offline</p>}
       </header>
 
+      {!standalone && (
+        <div className="card mx-5 mb-5 p-3.5 text-[13px] leading-snug text-white/60">
+          <b className="text-white">Not full screen?</b> You are in a Safari tab. Remove this icon, add it again with <b className="text-white">Open as Web App</b> ON, then open it from the Home Screen.
+        </div>
+      )}
+
       {songs && songs.length === 0 && (
         <Empty icon={<Music size={30} />} title="Nothing here yet" text="Import songs from the Files app. They are copied onto this iPhone and keep playing in Airplane Mode."
           action={<PrimaryButton icon={<Download size={18} />} onClick={() => go('import')}>Import Music</PrimaryButton>} />
@@ -60,12 +63,6 @@ export function Home() {
             <button onClick={() => play(all, undefined, true)} className="accent-bg press flex flex-1 items-center justify-center gap-2 rounded-[20px] py-4 text-[16px] font-bold"><Shuffle size={19} />Shuffle All</button>
             <button onClick={() => play(all, all[0], false)} className="glass press flex flex-1 items-center justify-center gap-2 rounded-[20px] py-4 text-[16px] font-bold"><Play size={19} fill="currentColor" />Play</button>
           </div>
-
-          {!miniOn && curId != null && (
-            <button onClick={() => openNP(true)} className="accent-bg press mx-5 mb-5 flex w-[calc(100%-2.5rem)] items-center gap-3 rounded-[20px] px-4 py-3.5 text-left">
-              <Music size={20} className="shrink-0" /><span className="flex-1 text-[15px] font-bold">{playing ? 'Now Playing' : 'Resume Player'}</span><Play size={16} fill="currentColor" className="shrink-0" />
-            </button>
-          )}
 
           {folder && (
             <button onClick={() => go('import')} className="card press mx-5 mb-5 flex w-[calc(100%-2.5rem)] items-center gap-3 p-3.5 text-left">
