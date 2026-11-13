@@ -21,7 +21,12 @@ export function PlayButton({ size = 72 }: { size?: number }) {
 }
 
 export function TransportRow() {
-  const { next, prev, shuffle, repeat, toggleShuffle, cycleRepeat } = usePlayer()
+  const next = usePlayer((s) => s.next)
+  const prev = usePlayer((s) => s.prev)
+  const shuffle = usePlayer((s) => s.shuffle)
+  const repeat = usePlayer((s) => s.repeat)
+  const toggleShuffle = usePlayer((s) => s.toggleShuffle)
+  const cycleRepeat = usePlayer((s) => s.cycleRepeat)
   const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat
   const on = 'accent-text'
   return (

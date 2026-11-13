@@ -36,7 +36,9 @@ function SeekBar() {
 }
 
 function VolumeBar() {
-  const { volume, setVolume, canSetVolume } = usePlayer()
+  const volume = usePlayer((s) => s.volume)
+  const setVolume = usePlayer((s) => s.setVolume)
+  const canSetVolume = usePlayer((s) => s.canSetVolume)
   // iOS locks element volume to hardware buttons; showing a dead slider would be misleading.
   if (!canSetVolume) return <div className="h-4" />
   return (
@@ -125,7 +127,11 @@ export function NowPlaying() {
 function QueueSheet() {
   const open = useNav((s) => s.queueOpen)
   const setQ = useNav((s) => s.setQueueOpen)
-  const { order, index, jumpTo, removeAt, clearUpcoming } = usePlayer()
+  const order = usePlayer((s) => s.order)
+  const index = usePlayer((s) => s.index)
+  const jumpTo = usePlayer((s) => s.jumpTo)
+  const removeAt = usePlayer((s) => s.removeAt)
+  const clearUpcoming = usePlayer((s) => s.clearUpcoming)
   const songs = useLiveQuery(() => db.songs.bulkGet(order), [order])
   if (!open) return null
   return (

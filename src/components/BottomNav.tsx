@@ -17,8 +17,7 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[.08]"
       style={{
         paddingBottom: 'var(--sab)',
-        background: 'linear-gradient(180deg, rgba(20,20,22,.72), rgba(0,0,0,.92))',
-        WebkitBackdropFilter: 'blur(30px) saturate(180%)', backdropFilter: 'blur(30px) saturate(180%)',
+        background: 'linear-gradient(180deg, rgba(24,24,27,.97), #000)',
       }}
     >
       <div className="flex h-[var(--nav-h)] items-center justify-around px-2">
